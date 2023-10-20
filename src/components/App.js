@@ -1,4 +1,4 @@
-import { Component } from "react";
+import { useEffect, useState } from "react";
 import { SearchBar } from "./SearchBar/SearchBar";
 import { fetchImages } from "./Api";
 import { ImageGallery } from "./ImageGallery/ImageGallery";
@@ -8,36 +8,35 @@ import { ErrMsg } from "./ErrorMassage/ErrorMassage";
 import toast, { Toaster } from 'react-hot-toast';
 import { Layout } from "./Layout";
 
-export class App extends Component {
-  state = {
-    query: '',
-    page: 1,
-    images: [],
-    loading: false,
-    error: false,
-  };
+export const App = () => {
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
-  handleSubmit = value => {
-    this.setState({
-      query: value,
-      page: 1,
-      images:[],
-    });
+  const handleSubmit = value => {
+    setQuery(value);
+    setPage(1);
+    setImages([]);
   }
 
-  handleLoadMore = () => {
-    this.setState(prevState => ({ page: prevState.page + 1 }));
+ const handleLoadMore = () => {
+    setPage(prevState => prevState + 1);
   };
 
-  async componentDidUpdate(prevProps, prevState) {
-    if (prevState.query !== this.state.query || prevState.page !== this.state.page) {
+  useEffect(() => {
+    if (query === '') {
+      return;
+    };
+
+    async function getImages() {
       try {
-        this.setState({ loading: true, error: false });
-        const apiData = await fetchImages(this.state.query, this.state.page);
+        setLoading(true);
+        setError(false);
+        const apiData = await fetchImages(query, page);
         const newImg = apiData.hits;
-        this.setState(prevState => ({
-          images: [...prevState.images, ...newImg]
-        }))
+        setImages(prevState => ([...prevState, ...newImg]))
 
         if (newImg.length > 0) {
           toast.success(`Hooray! We found totalHits images: ${apiData.totalHits}`);
@@ -46,26 +45,24 @@ export class App extends Component {
         }
       
       } catch (error) {
-        this.setState({ error: true });
+        setError(error);
       
       } finally {
-        this.setState({ loading: false });
-      
+        setLoading(false);
       }
     }
-  }
-
-  render() {
-    const { loading, error } = this.state
+    getImages()
+  }, [query, page]);
+    
     return (
       <Layout>
-        <SearchBar onSubmit={this.handleSubmit} />
+        <SearchBar onSubmit={handleSubmit} />
         {loading && (loadSpinner)}
         {error && <ErrMsg/>}
-        {this.state.images.length > 0 && <ImageGallery addImages={this.state.images} />}
-        {this.state.images.length > 0 && <LoadMore onClick={this.handleLoadMore} />}
+        {images.length > 0 && <ImageGallery addImages={images} />}
+        {images.length > 0 && <LoadMore onClick={handleLoadMore} />}
         <Toaster position="top-right"/>
       </Layout>
     )
   }
-}
+

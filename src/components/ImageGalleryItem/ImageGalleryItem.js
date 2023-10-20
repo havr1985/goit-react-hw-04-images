@@ -1,6 +1,6 @@
 import Modal from "react-modal";
 import { Img } from "./GalleryItem.styled";
-import { Component } from 'react';
+import { useState } from 'react';
 
 const customStyles = {
   content: {
@@ -24,32 +24,26 @@ overlay: {
 };
 
 Modal.setAppElement('#root');
-export class ImageGalleryItem extends Component {
-  state = {
-    isModalOpen: false,
+export const ImageGalleryItem = ({addImages: { webformatURL, largeImageURL, tags }}) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openModal = () => {
+    setIsModalOpen(true);
   };
 
-  openModal = () => {
-    this.setState({ isModalOpen: true });
+  const closeModal = () => {
+    setIsModalOpen(false);
   };
-
-  closeModal = () => {
-    this.setState({ isModalOpen: false });
-  };
-
-    render() {
-    const { addImages:{ webformatURL, largeImageURL, tags } } = this.props
-    const { isModalOpen } = this.state;
 
       return (
         <>
-        <div onClick={this.openModal}>
+        <div onClick={openModal}>
             <Img src={webformatURL} alt={tags} />   
         </div>
 
         <Modal
           isOpen={isModalOpen}
-          onRequestClose={this.closeModal}
+          onRequestClose={closeModal}
           style={customStyles}
           contentLabel="Example Modal"
         >
@@ -58,4 +52,4 @@ export class ImageGalleryItem extends Component {
          </>
     );
   }
-}
+
